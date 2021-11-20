@@ -2,7 +2,7 @@
 
 施宇 191250119
 
-## Windows下搭建伪分布式HBase环境
+## Windows下搭建HBase环境
 
 ### 安装HBase
 
@@ -84,6 +84,65 @@ hbase(main):001.0>
     <version>1.2.0</version>
 </dependency>
 ```
+
+
+
+## WSL2下搭建HBase环境
+
+### 安装HBase
+
+下载HBase：
+
+```shell
+wget https://mirrors.nju.edu.cn/apache/hbase/2.4.8/hbase-2.4.8-bin.tar.gz
+```
+
+解压：
+
+```shell
+tar xzvf hbase-2.4.8-bin.tar.gz
+```
+
+![image13](https://github.com/shiyu-coder/Financial-big-data-exp-3/blob/master/image/13.png)
+
+### 配置伪分布式
+
+修改hbase/conf/hbase-env.sh，配置JAVA_HOME，HBASE_CLASSPATH，HBASE_MANAGES_ZK。
+
+```shell
+export JAVA_HOME=/usr/local/jdk8
+export HBASE_CLASSPATH=/usr/local/hadoop/conf 
+export HBASE_MANAGES_ZK=true
+```
+
+修改hbase/conf/hbase-site.xml，将内容替换如下：
+
+```xml
+<configuration>
+    <property>
+        <name>hbase.rootdir</name>
+        <value>hdfs://localhost:9000/hbase</value>
+    </property>
+    <property>
+        <name>hbase.cluster.distributed</name>
+        <value>true</value>
+    </property>
+</configuration>
+```
+
+启动Hadoop后，再启动HBase(在/hbase/目录下)：
+
+```shell
+./sbin/start-dfs.sh
+```
+
+进入shell界面：
+
+```shell
+bin/hbase shell
+```
+
+![image14](https://github.com/shiyu-coder/Financial-big-data-exp-3/blob/master/image/14.png)
 
 ## 编写Java程序完成下列任务
 
