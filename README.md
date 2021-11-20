@@ -451,6 +451,101 @@ HBaseOperator.deleteTable("StuInfo");
 
 除此之外，还有一些实现了但是本次实验没有用到的方法，包括获取指定行的数据(getOneRecord)，删除指定行(delOneRecord)，查询指定rowkey和列簇下的所有数据(getByRawKeyColumn)。
 
+**getOneRecord:**
+
+通过Get类设置要查找的rowKey，然后通过get方法获得结果，通过训练打印这一行上的每个cell的值：
+
+```java
+public static void getOneRecord(String tableName, String rowKey){
+    try{
+        Table table = conn.getTable(TableName.valueOf(tableName));
+        Get get = new Get(rowKey.getBytes());
+        Result res = table.get(get);
+        List<Cell> list = res.listCells();
+        for(Cell cell:list){
+            System.out.print(new String(cell.getRowArray(),cell.getRowOffset(),cell.getRowLength()) + " " );
+            System.out.print(new String(cell.getFamilyArray(),cell.getFamilyOffset(),cell.getFamilyLength()) + ":" );
+            System.out.print(new String(cell.getQualifierArray(),cell.getQualifierOffset(),cell.getQualifierLength()) + " " );
+            System.out.print(cell.getTimestamp() + " " );
+            System.out.print(new String(cell.getValueArray(),cell.getValueOffset(),cell.getValueLength()) + " " );
+            System.out.println("");
+        }
+    }catch (IOException e){
+        e.printStackTrace();
+    }
+}
+```
+
+**delOneRecord:**
+
+通过Delete类设置要删除的rowKey，然后通过delete方法删除该行：
+
+```java
+public static void delOneRecord(String tableName, String rowKey){
+    try{
+        Table table = conn.getTable(TableName.valueOf(tableName));
+        List<Delete> list = new ArrayList<Delete>();
+        Delete del = new Delete(rowKey.getBytes());
+        list.add(del);
+        table.delete(list);
+        System.out.println("Del record:" + rowKey + " ... Done.");
+    }catch (IOException e){
+        e.printStackTrace();
+    }
+}
+```
+
+**getByRawKeyColumn:**
+
+如果给出列名了，就同各国addColumn方法设置列族和列名，然后通过get方法查询结果，如果没有给出列名就直接通过addFamily方法添加列族，然后查询结果：
+
+```java
+public static void getByRawKeyColumn(String tableName,String rowKey, String column){
+    try{
+        Table table = conn.getTable(TableName.valueOf(tableName));
+        Get get = new Get(rowKey.getBytes());
+        if(column.contains(":"))
+        {
+            //查询指定rowkey和列簇下的指定列名
+            String[] split = column.split(":");
+            get.addColumn(Bytes.toBytes(split[0]),Bytes.toBytes(split[1]));
+            Result result = table.get(get);
+            byte[] value = result.getValue(Bytes.toBytes(split[0]), Bytes.toBytes(split[1]));
+            if(Bytes.toString(value)!=null)
+                System.out.println(Bytes.toString(value));
+            else
+                System.out.println("null");
+        }
+        else
+        {
+            //查询指定rowkey和列簇下的所有数据
+            get.addFamily(column.getBytes());
+            Result result = table.get(get);
+            Cell[] cells = result.rawCells();
+            for (Cell cell:cells)
+            {
+                //获取列簇名称
+                String cf = Bytes.toString(cell.getFamilyArray(), cell.getFamilyOffset(), cell.getFamilyLength());
+                //获取列的名称
+                String colunmName = Bytes.toString(cell.getQualifierArray(), cell.getQualifierOffset(), cell.getQualifierLength());
+                //获取值
+                String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
+                if(value!=null)
+                    System.out.println(cf+":"+colunmName+"=>"+value);
+                else
+                    System.out.println(cf+":"+colunmName+"=>"+"null");
+            }
+        }
+        table.close();
+    }catch (IOException e){
+        e.printStackTrace();
+    }
+
+}
+```
+
+
+
 ## 使用Shell完成上述Java程序的任务
 
 ### 创建表并插入数据
