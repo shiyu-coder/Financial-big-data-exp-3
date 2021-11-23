@@ -681,3 +681,11 @@ drop 'StuInfo'
 删除结果：
 
 ![image12](https://github.com/shiyu-coder/Financial-big-data-exp-3/blob/master/image/12.png)
+
+## 遇到的错误
+
+### Hadoop 3.2.1 localhost: ERROR: You must be a privileged user in order to run a secure service.
+
+<img src="D:\Hadoop\实验三\image\15.png" alt="15" style="zoom:60%;" />
+
+根据stackoverflow上的解决方案，将整个hadoop的安装目录移动到/opt/hadoop中，再通过root用户启动hadoop，即可正常启动。
